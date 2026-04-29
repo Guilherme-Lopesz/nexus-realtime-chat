@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NEXUS | Comunicação Segura</title>
+
+    <!-- Tailwind CSS via CDN (config inline) -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Space Grotesk', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
+                    colors: {
+                        background: '#0a0b10', card: '#13161c', primary: '#00ff9d', secondary: '#9d4edd',
+                        accent: '#ffb703', muted: '#1e293b', border: '#2d3748', text: '#e2e8f0'
+                    },
+                    animation: { 
+                        'pulse-slow': 'pulse 2s infinite',
+                        'fade-in': 'fadeIn 0.3s ease-in',
+                        'slide-in': 'slideIn 0.3s ease-out'
+                    },
+                    keyframes: {
+                        fadeIn: { from: { opacity: 0 }, to: { opacity: 1 } },
+                        slideIn: { from: { transform: 'translateY(10px)', opacity: 0 }, to: { transform: 'translateY(0)', opacity: 1 } }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Bibliotecas externas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Estilos customizados -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="antialiased">
+    <div class="scanline"></div>
+    <div id="toast-container" class="fixed top-5 right-5 z-[100] flex flex-col gap-2"></div>
+
+    <div class="fixed inset-0 z-[-1]">
+        <div class="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5"></div>
+        <div class="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:50px_50px]"></div>
+    </div>
+
+    <!-- Landing View -->
+    <div id="view-landing" class="flex-1 flex flex-col items-center justify-center p-4 relative z-10">
+        <div class="text-center mb-12">
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-6 border border-primary/20 hover:border-primary/60 transition hover:shadow-lg" style="animation: slideInDown 0.6s ease-out;">
+                <div class="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                <span class="text-xs font-mono text-primary tracking-widest">SISTEMA ONLINE</span>
+            </div>
+            <h1 class="text-6xl md:text-8xl font-bold tracking-tight mb-4 text-white" style="animation: slideInDown 0.8s ease-out;">
+                NEXUS<span class="gradient-text">CHAT</span>
+            </h1>
+            <p class="text-lg text-slate-400 font-mono max-w-2xl mx-auto" style="animation: fadeInUp 0.8s ease-out 0.2s both;">
+                Seguro • Tempo Real • Hub Descentralizado
+            </p>
+        </div>
+        <div class="grid md:grid-cols-2 gap-6 w-full max-w-4xl" style="animation: fadeInUp 0.8s ease-out 0.4s both;">
+            <div onclick="goToAuth('host')" class="glass p-8 rounded-2xl cursor-pointer transition hover:-translate-y-2 hover:border-primary/50 group" style="border: 1px solid rgba(0,255,157,0.2); position: relative; overflow: hidden;">
+                <div class="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/0 opacity-0 group-hover:opacity-100 transition duration-300"></div>
+                <div class="relative z-10">
+                    <div class="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center mb-6 text-primary group-hover:animate-glow transition"><i data-lucide="server" class="w-8 h-8"></i></div>
+                    <h2 class="text-2xl font-bold text-white mb-2 font-sans">HOSPEDAR SERVIDOR</h2>
+                    <p class="text-sm text-slate-400 font-mono">Crie um ambiente de chat seguro.</p>
+                </div>
+            </div>
+            <div onclick="goToAuth('join')" class="glass p-8 rounded-2xl cursor-pointer transition hover:-translate-y-2 hover:border-secondary/50 group" style="border: 1px solid rgba(157,78,221,0.2); position: relative; overflow: hidden;">
+                <div class="absolute inset-0 bg-gradient-to-br from-secondary/5 via-transparent to-secondary/0 opacity-0 group-hover:opacity-100 transition duration-300"></div>
+                <div class="relative z-10">
+                    <div class="w-16 h-16 rounded-xl bg-secondary/10 flex items-center justify-center mb-6 text-secondary group-hover:animate-glow transition"><i data-lucide="globe" class="w-8 h-8"></i></div>
+                    <h2 class="text-2xl font-bold text-white mb-2 font-sans">ENTRAR NO SERVIDOR</h2>
+                    <p class="text-sm text-slate-400 font-mono">Conecte-se a nós existentes.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth View -->
+    <div id="view-auth" class="hidden flex-1 flex flex-col items-center justify-center p-4 z-10">
+        <button onclick="switchView('view-landing')" class="absolute top-8 left-8 text-slate-400 hover:text-white flex items-center gap-2 text-xs font-bold transition"><i data-lucide="arrow-left" class="w-4 h-4"></i> VOLTAR</button>
+        <div class="glass p-8 rounded-2xl w-full max-w-md border-t-4 border-primary shadow-2xl">
+            <h2 class="text-3xl font-bold text-center mb-2 font-sans text-white">IDENTIDADE</h2>
+            <div class="space-y-4 mt-6">
+                <input type="text" id="auth-user" class="w-full bg-[#0a0b10] border border-border rounded-lg p-3 text-white focus:border-primary outline-none transition" placeholder="Nome de usuário">
+                <input type="password" id="auth-pass" class="w-full bg-[#0a0b10] border border-border rounded-lg p-3 text-white focus:border-primary outline-none transition" placeholder="Senha">
+                <div class="grid grid-cols-2 gap-3 pt-4">
+                    <button onclick="apiAuth('login')" class="py-3 bg-emerald-500 text-black font-bold rounded-lg hover:bg-emerald-400 transition active:scale-95" style="background-color: #00ff9d; box-shadow: 0 0 10px rgba(0, 255, 157, 0.5);">ENTRAR</button>
+                    <button onclick="apiAuth('register')" class="py-3 border border-border text-white font-bold rounded-lg hover:border-primary transition hover:bg-primary/10">REGISTRAR</button>
+                </div>
+                <div class="text-center text-xs text-slate-500 py-2">- OU -</div>
+                <button onclick="enterGuest()" class="w-full py-3 border border-dashed border-slate-600 text-slate-400 hover:text-white rounded-lg font-mono text-sm flex justify-center gap-2 transition hover:border-primary hover:bg-primary/5"><i data-lucide="ghost" class="w-4 h-4"></i> ACESSO CONVIDADO</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lobby View -->
+    <div id="view-lobby" class="hidden flex-1 flex flex-col p-4 md:p-8 max-w-7xl mx-auto w-full h-full z-10">
+        <div class="flex justify-between items-end mb-6 border-b border-border pb-4">
+            <div>
+                <h2 class="text-3xl md:text-4xl font-bold text-white">NAVEGADOR DE <span class="text-slate-600">SERVIDORES</span></h2>
+                <p class="text-xs text-primary font-mono mt-1" id="user-display">USUÁRIO: CONVIDADO</p>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="openModal()" class="px-4 py-2 bg-primary text-black font-bold rounded-lg flex items-center gap-2 text-sm hover:bg-emerald-400 transition"><i data-lucide="plus-square" class="w-4 h-4"></i> CRIAR</button>
+                <button onclick="showCommands()" class="px-4 py-2 border border-border text-white rounded-lg flex items-center gap-2 text-sm hover:border-primary transition"><i data-lucide="command" class="w-4 h-4"></i> COMANDOS</button>
+                <button onclick="location.reload()" class="p-2 border border-red-500/50 text-red-500 rounded-lg hover:bg-red-500/10"><i data-lucide="log-out" class="w-5 h-5"></i></button>
+            </div>
+        </div>
+        <div class="flex gap-4 mb-6">
+            <div class="flex-1 glass rounded-lg flex items-center px-4 border border-border">
+                <i data-lucide="search" class="text-slate-500 w-4 h-4"></i>
+                <input type="text" id="room-search" placeholder="Buscar canais..." class="bg-transparent border-none text-white w-full h-10 px-3 focus:outline-none font-mono text-sm" oninput="filterRooms()">
+            </div>
+            <button onclick="fetchRooms()" class="glass px-4 rounded-lg text-slate-400 hover:text-white border border-border"><i data-lucide="refresh-cw" class="w-4 h-4"></i></button>
+        </div>
+        <div id="room-list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto pb-20 scroll-area"></div>
+    </div>
+
+    <!-- Chat View -->
+    <div id="view-chat" class="hidden w-full h-full flex bg-[#0a0b10] relative z-20">
+        <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/80 z-30 hidden md:hidden backdrop-blur-sm"></div>
+        <div id="chat-sidebar" class="sidebar-mobile fixed md:relative z-40 w-72 h-full bg-[#0f1115] border-r border-border flex flex-col md:transform-none">
+            <div class="p-5 border-b border-border flex justify-between items-center">
+                <h3 class="font-bold text-white flex items-center gap-2"><i data-lucide="hexagon" class="text-secondary w-4 h-4"></i> NEXUS</h3>
+                <button onclick="toggleSidebar()" class="md:hidden text-slate-400"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div class="p-4 border-b border-border">
+                <div class="text-[10px] font-mono text-slate-500 mb-2 tracking-widest">INFORMAÇÕES DA SALA</div>
+                <div class="text-sm text-white" id="room-info">Usuários: <span id="user-count">0</span></div>
+                <div class="text-xs text-slate-400 mt-1" id="room-owner"></div>
+            </div>
+            
+            <div class="flex-1 p-4 overflow-y-auto scroll-area">
+                <div class="text-[10px] font-mono text-slate-500 mb-3 tracking-widest">MEMBROS</div>
+                <ul id="user-list" class="space-y-2"></ul>
+            </div>
+            
+            <div class="p-4 border-t border-border space-y-2">
+                <button onclick="showCommands()" class="w-full py-2 border border-border text-white rounded-lg text-xs font-bold flex items-center justify-center gap-2"><i data-lucide="command" class="w-3 h-3"></i> COMANDOS</button>
+                <button onclick="leaveRoom()" class="w-full py-2 bg-red-500/10 text-red-500 rounded border border-red-500/20 hover:bg-red-500/20 text-xs font-bold">DESCONECTAR</button>
+            </div>
+        </div>
+
+        <div class="flex-1 flex flex-col relative w-full h-full">
+            <div class="h-16 border-b border-border flex items-center justify-between px-4 bg-[#0f1115]/90 backdrop-blur z-20 shrink-0">
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleSidebar()" class="md:hidden text-slate-400"><i data-lucide="menu"></i></button>
+                    <div>
+                        <h2 id="room-title" class="font-bold text-white text-lg leading-none">LOBBY</h2>
+                        <span class="text-[10px] text-green-500 font-mono tracking-wider flex items-center gap-1"><span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> CRIPTOGRAFADO</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="toggleEmojiPicker()" class="p-2 text-slate-400 hover:text-white" id="emoji-btn">
+                        <i data-lucide="smile" class="w-5 h-5"></i>
+                    </button>
+                    <button onclick="togglePrivateMessages()" class="p-2 text-slate-400 hover:text-white" id="pm-toggle" title="Alternar mensagens privadas">
+                        <i data-lucide="lock" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="messages" class="flex-1 overflow-y-auto p-4 space-y-3 scroll-area w-full"></div>
+
+            <!-- Typing Indicator -->
+            <div id="typing-indicator" class="hidden text-xs text-purple-400 italic px-4 py-1"></div>
+
+            <!-- Reply Preview -->
+            <div id="reply-preview" class="hidden reply-preview mx-3 mt-2"></div>
+
+            <!-- Emoji Picker -->
+            <div id="emoji-picker" class="hidden glass p-4 border-t border-border">
+                <div class="emoji-selector" id="emoji-container"></div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="input-area-wrapper p-3">
+                <div id="vote-active" class="hidden mb-2 p-3 rounded-lg bg-primary/10 border border-primary/30">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs text-primary font-mono" id="vote-description">VOTAÇÃO ATIVA!</span>
+                        <span id="vote-timer" class="text-xs font-bold">60s</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="vote('yes')" id="vote-yes-btn" class="flex-1 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold text-sm flex items-center justify-center gap-2">
+                            <i data-lucide="thumbs-up" class="w-4 h-4"></i> SIM
+                        </button>
+                        <button onclick="vote('no')" id="vote-no-btn" class="flex-1 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-bold text-sm flex items-center justify-center gap-2">
+                            <i data-lucide="thumbs-down" class="w-4 h-4"></i> NÃO
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-2 bg-[#151518] p-1.5 rounded-full border border-border focus-within:border-primary/50 transition">
+                    <button onclick="document.getElementById('file-in').click()" class="p-2 text-slate-400 hover:text-white"><i data-lucide="paperclip" class="w-5 h-5"></i></button>
+                    <input type="file" id="file-in" hidden onchange="sendFile()" accept="image/*,audio/*,video/*,.webm,.wav,.mp3,.ogg,.m4a,.opus,.flac,.aac,.mpeg,.mp4,.mov,.avi,.mkv,.flv">
+                    <input id="msg-in" class="flex-1 bg-transparent border-none text-white text-sm focus:outline-none px-2" placeholder="Digite uma mensagem..." autocomplete="off" autofocus>
+                    <button id="mic-btn" onmousedown="startRec()" onmouseup="stopRec()" ontouchstart="startRec()" ontouchend="stopRec()" class="p-2 text-slate-400 hover:text-red-500 transition"><i data-lucide="mic" class="w-5 h-5"></i></button>
+                    <button onclick="sendMsg()" class="p-2 bg-primary text-black rounded-full hover:bg-emerald-400 transition shadow-lg"><i data-lucide="send" class="w-4 h-4"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div class="glass p-6 rounded-2xl w-full max-w-xs border border-white/10">
+            <h3 class="font-bold text-white mb-4 text-lg">CRIAR SERVIDOR</h3>
+            <input id="new-room" class="w-full bg-black/50 border border-border p-3 rounded-lg text-white mb-3 outline-none focus:border-primary" placeholder="Nome">
+            <input id="new-pass" type="password" class="w-full bg-black/50 border border-border p-3 rounded-lg text-white mb-6 outline-none focus:border-primary" placeholder="Senha (Opcional)">
+            <div class="flex gap-2">
+                <button onclick="document.getElementById('modal').classList.add('hidden')" class="flex-1 py-3 text-slate-400 hover:text-white text-sm">CANCELAR</button>
+                <button onclick="createRoom()" class="flex-1 py-3 bg-primary text-black font-bold rounded-lg text-sm">CRIAR</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="commands-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div class="glass p-6 rounded-2xl w-full max-w-md border border-white/10">
+            <h3 class="font-bold text-white mb-4 text-lg">COMANDOS DISPONÍVEIS</h3>
+            <div class="space-y-3 max-h-96 overflow-y-auto scroll-area">
+                <div class="bg-black/30 p-3 rounded-lg">
+                    <h4 class="text-primary font-bold text-sm mb-2">👤 PARA TODOS OS USUÁRIOS:</h4>
+                    <div class="text-xs space-y-1 text-slate-300">
+                        <div><code class="text-primary">/pm &lt;usuário&gt; &lt;msg&gt;</code> - Mensagem privada</div>
+                        <div><code class="text-primary">/togglepm</code> - Ativa/desativa mensagens privadas</div>
+                        <div><code class="text-primary">/votekick &lt;usuário&gt;</code> - Votação para expulsar</div>
+                        <div><code class="text-primary">/votemute &lt;usuário&gt; [min]</code> - Votação para mutar</div>
+                        <div><code class="text-primary">/sim, /não</code> - Votar em votações ativas</div>
+                        <div><code class="text-primary">/emojis</code> - Mostrar emojis disponíveis</div>
+                        <div><code class="text-primary">/delete &lt;id&gt;</code> - Deletar sua mensagem</div>
+                        <div><code class="text-primary">/help</code> - Mostrar esta ajuda</div>
+                    </div>
+                </div>
+                
+                <div class="bg-black/30 p-3 rounded-lg">
+                    <h4 class="text-red-400 font-bold text-sm mb-2">👑 ADMIN/DONO DA SALA:</h4>
+                    <div class="text-xs space-y-1 text-slate-300">
+                        <div><code class="text-red-400">/kick &lt;usuário&gt; [razão]</code> - Expulsar usuário</div>
+                        <div><code class="text-red-400">/warn &lt;usuário&gt; [razão]</code> - Advertir usuário</div>
+                        <div><code class="text-red-400">/mute &lt;usuário&gt; [min] [razão]</code> - Mutar usuário</div>
+                        <div><code class="text-red-400">/unmute &lt;usuário&gt;</code> - Desmutar usuário</div>
+                        <div><code class="text-red-400">/broadcast &lt;msg&gt;</code> - Mensagem para todos</div>
+                        <div><code class="text-red-400">/delete &lt;id&gt;</code> - Deletar qualquer mensagem</div>
+                    </div>
+                </div>
+                
+                <div class="bg-black/30 p-3 rounded-lg">
+                    <h4 class="text-accent font-bold text-sm mb-2">😊 EMOJIS:</h4>
+                    <div class="text-xs text-slate-300">
+                        Use códigos de emoji em suas mensagens:<br>
+                        <code>:)</code> 😊 <code>:(</code> 😢 <code>:D</code> 😃 <code>:P</code> 😛<br>
+                        <code>;)</code> 😉 <code>:O</code> 😮 <code>&lt;3</code> ❤ <code>:fire</code> 🔥
+                    </div>
+                </div>
+            </div>
+            <button onclick="document.getElementById('commands-modal').classList.add('hidden')" class="w-full mt-4 py-3 bg-primary text-black font-bold rounded-lg text-sm">FECHAR</button>
+        </div>
+    </div>
+
+    <!-- Script principal da aplicação -->
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

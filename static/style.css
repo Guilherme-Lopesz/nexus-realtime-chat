@@ -1,0 +1,382 @@
+body {
+    background-color: #050505;
+    color: #e2e8f0;
+    overflow: hidden;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Space Grotesk', 'JetBrains Mono', sans-serif;
+}
+
+.scanline {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 50;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 255, 157, 0.03) 2px, rgba(0, 255, 157, 0.03) 4px);
+}
+
+.glass {
+    background: rgba(19, 22, 28, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.gradient-text {
+    background: linear-gradient(to right, #00ff9d, #9d4edd);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.scroll-area {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+}
+
+.scroll-area::-webkit-scrollbar {
+    width: 4px;
+}
+
+.scroll-area::-webkit-scrollbar-track {
+    background: #0a0b10;
+}
+
+.scroll-area::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 2px;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.recording {
+    color: #ef4444;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Animações Neon */
+@keyframes glow {
+    0%, 100% { 
+        box-shadow: 0 0 5px rgba(0, 255, 157, 0.5), 
+                    inset 0 0 5px rgba(0, 255, 157, 0.1);
+    }
+    50% { 
+        box-shadow: 0 0 20px rgba(0, 255, 157, 0.8), 
+                    inset 0 0 10px rgba(0, 255, 157, 0.3);
+    }
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Botões com estilo neon */
+button[class*="bg-primary"],
+button[class*="text-black"] {
+    background-color: #00ff9d !important;
+    color: #000000 !important;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
+}
+
+button[class*="bg-primary"]:hover,
+button[class*="bg-primary"]:focus {
+    background-color: #00ff9d !important;
+    box-shadow: 0 0 20px rgba(0, 255, 157, 0.8), 
+                inset 0 0 5px rgba(0, 255, 157, 0.5);
+    transform: scale(1.02);
+}
+
+button[class*="bg-primary"]:active {
+    transform: scale(0.98);
+}
+
+/* Landing page animations */
+#view-landing h1 {
+    animation: slideInDown 0.8s ease-out;
+}
+
+#view-landing p {
+    animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+#view-landing .grid {
+    animation: fadeInUp 0.8s ease-out 0.4s both;
+}
+
+#view-landing .grid > div {
+    transition: all 0.3s ease;
+}
+
+#view-landing .grid > div:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 25px rgba(0, 255, 157, 0.2);
+    border-color: rgba(0, 255, 157, 0.5);
+}
+
+#view-landing .grid > div:hover i {
+    animation: glow 1.5s ease-in-out infinite;
+}
+
+/* Efeito neon no sistema online - hover effect */
+.inline-flex:hover {
+    border-color: rgba(0, 255, 157, 0.5);
+    box-shadow: 0 0 15px rgba(0, 255, 157, 0.3);
+}
+
+/* Garantir visibilidade em todos os estados */
+button:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 255, 157, 0.3);
+}
+
+input:focus {
+    outline: none !important;
+}
+
+/* Estilos para inputs */
+input[type="text"],
+input[type="password"] {
+    background-color: #0a0b10 !important;
+    border: 1px solid #2d3748 !important;
+    color: #e2e8f0 !important;
+    transition: all 0.3s ease;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus {
+    border-color: #00ff9d !important;
+    box-shadow: 0 0 10px rgba(0, 255, 157, 0.2) !important;
+}
+
+.sidebar-mobile {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+}
+
+.sidebar-mobile.open {
+    transform: translateX(0);
+}
+
+/* BUBBLES */
+.msg-me {
+    background: linear-gradient(135deg, #00ff9d20, #00ff9d05);
+    border: 1px solid rgba(0,255,157,0.2);
+    color: #ccfce3;
+    align-self: flex-end;
+    border-radius: 12px 12px 0 12px;
+}
+
+.msg-other {
+    background: #151518;
+    border: 1px solid #333;
+    align-self: flex-start;
+    border-radius: 12px 12px 12px 0;
+}
+
+.msg-private {
+    background: rgba(255, 183, 3, 0.1);
+    border: 1px solid rgba(255, 183, 3, 0.3);
+    color: #ffd700;
+    border-radius: 12px;
+    width: 100%;
+    text-align: center;
+    margin: 5px 0;
+}
+
+.msg-system {
+    background: rgba(157, 78, 221, 0.1);
+    border: 1px solid rgba(157, 78, 221, 0.3);
+    color: #d8b4fe;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin: 5px 0;
+    font-size: 12px;
+}
+
+.msg-admin {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.05));
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.msg-reply {
+    border-left: 3px solid #00ff9d;
+    padding-left: 8px;
+    margin-bottom: 4px;
+}
+
+.input-area-wrapper {
+    padding-bottom: env(safe-area-inset-bottom);
+    background: #0a0a0c;
+    border-top: 1px solid #2d3748;
+    z-index: 20;
+}
+
+.emoji-selector {
+    max-height: 300px;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 5px;
+}
+
+.emoji-btn {
+    font-size: 24px;
+    padding: 5px;
+    text-align: center;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background 0.2s;
+}
+
+.emoji-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.badge-admin {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+}
+
+.badge-owner {
+    background: linear-gradient(135deg, #9d4edd, #7c3aed);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+}
+
+.badge-user {
+    background: linear-gradient(135deg, #00ff9d, #10b981);
+    color: black;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+}
+
+.badge-guest {
+    background: linear-gradient(135deg, #6b7280, #4b5563);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+}
+
+.vote-active {
+    border: 2px solid #00ff9d;
+    animation: pulse 2s infinite;
+}
+
+.warning-banner {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    background: linear-gradient(135deg, #ffb703, #fb8500);
+    color: #000;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-weight: bold;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(251, 133, 0, 0.4);
+    animation: slideIn 0.5s ease-out;
+}
+
+.reply-preview {
+    background: rgba(19, 22, 28, 0.9);
+    border-left: 4px solid #00ff9d;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    border-radius: 4px;
+}
+/* ── Typing indicator ──────────────────────────────────────── */
+#typing-indicator {
+    font-size: 11px;
+    color: #9d4edd;
+    padding: 4px 12px;
+    font-style: italic;
+    animation: pulse 1.5s infinite;
+}
+
+/* ── Room description toast ────────────────────────────────── */
+.room-desc-banner {
+    background: rgba(0, 255, 157, 0.08);
+    border: 1px solid rgba(0, 255, 157, 0.2);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 12px;
+    color: #ccfce3;
+    margin: 6px 0;
+    text-align: center;
+}
+
+/* ── Animate fade-in ───────────────────────────────────────── */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in { animation: fadeIn 0.2s ease-out; }
+
+/* ── Admin ban badge ───────────────────────────────────────── */
+.badge-banned {
+    background: linear-gradient(135deg, #7f1d1d, #991b1b);
+    color: #fca5a5;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+}
+
+/* ── Clear chat flash ──────────────────────────────────────── */
+@keyframes flashRed {
+    0%   { background: rgba(239,68,68,0.15); }
+    100% { background: transparent; }
+}
+.flash-clear { animation: flashRed 0.6s ease-out; }
+
+/* ── Toast container ───────────────────────────────────────── */
+#toast-container {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-width: 320px;
+}
