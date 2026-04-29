@@ -335,22 +335,64 @@ let mediaRec, chunks = [];
 
 function startRec() {
     document.getElementById("mic-btn").classList.add("recording");
-    if (!navigator.mediaDevices?.getUserMedia) return showToast("Gravação não suportada", "error");
+    
+    // Verificar disponibilidade de getUserMedia
+    if (!navigator.mediaDevices?.getUserMedia) {
+        document.getElementById("mic-btn").classList.remove("recording");
+        showToast("❌ Seu navegador não suporta gravação de áudio. Use Chrome, Firefox ou Edge.", "error");
+        return;
+    }
 
-    navigator.mediaDevices.getUserMedia({ audio: true }).then(s => {
-        mediaRec = new MediaRecorder(s, { mimeType: "audio/webm" });
-        mediaRec.start();
-        chunks = [];
-        mediaRec.ondataavailable = e => chunks.push(e.data);
-        mediaRec.onstop = () => {
-            const blob   = new Blob(chunks, { type: "audio/webm" });
-            const reader = new FileReader();
-            reader.readAsDataURL(blob);
-            reader.onloadend = () => {
-                socket.emit("upload_file", { name: "audio.webm", data: reader.result, size: blob.size, type: "audio/webm" });
-            };
-        };
-    }).catch(() => showToast("Acesso ao microfone negado", "error"));
+    // Solicitar acesso ao microfone
+    navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+            try {
+                // Tentar criar MediaRecorder com mime type suportado
+                let mimeType = "audio/webm";
+                if (!MediaRecorder.isTypeSupported(mimeType)) {
+                    mimeType = "audio/mp4";
+                    if (!MediaRecorder.isTypeSupported(mimeType)) {
+                        mimeType = ""; // deixar navegador escolher
+                    }
+                }
+
+                mediaRec = new MediaRecorder(stream, { mimeType });
+                mediaRec.start();
+                chunks = [];
+                
+                mediaRec.ondataavailable = e => chunks.push(e.data);
+                mediaRec.onstop = () => {
+                    const blob   = new Blob(chunks, { type: mediaRec.mimeType || "audio/webm" });
+                    const reader = new FileReader();
+                    reader.readAsDataURL(blob);
+                    reader.onloadend = () => {
+                        socket.emit("upload_file", { 
+                            name: "audio.webm", 
+                            data: reader.result, 
+                            size: blob.size, 
+                            type: "audio/webm" 
+                        });
+                        showToast("✅ Áudio enviado com sucesso!", "success");
+                    };
+                };
+            } catch (e) {
+                document.getElementById("mic-btn").classList.remove("recording");
+                showToast("❌ Erro ao iniciar gravação: " + e.message, "error");
+            }
+        })
+        .catch(err => {
+            document.getElementById("mic-btn").classList.remove("recording");
+            
+            if (err.name === "NotAllowedError") {
+                showToast("🔒 Você negou acesso ao microfone. Permita em configurações do navegador.", "error");
+            } else if (err.name === "NotFoundError") {
+                showToast("🎤 Microfone não encontrado no dispositivo.", "error");
+            } else if (err.name === "NotSupportedError") {
+                showToast("❌ Seu navegador não suporta getUserMedia.", "error");
+            } else {
+                showToast("❌ Erro ao acessar microfone: " + err.name, "error");
+            }
+        });
 }
 
 function stopRec() {
