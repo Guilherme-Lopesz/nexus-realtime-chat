@@ -1,5 +1,9 @@
 # Nexus Chat — Real-time Chat com Governança Distribuída
 
+<div align="center">
+  <video src="static/nexusv2.mp4" width="100%" autoplay loop muted playsinline></video>
+</div>
+
 Plataforma de comunicação em tempo real projetada para escalabilidade, com moderação comunitária, sistema anti-spam multicamada e gerenciamento inteligente de recursos.
 
 ---
